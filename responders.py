@@ -1,12 +1,30 @@
 import telebot
+from dbs.gcategory import GCategory
+from dbs.gproduct import GProduct
+import gnrl_crud
 
 
 def do_search(bot: telebot.TeleBot, message: telebot.types.Message):
+    res = gnrl_crud.find_products_by_category(str(message.text))
+    if len(res) == 0:
+        print('no results by category')
+        res = gnrl_crud.find_like_products_by_name(str(message.text))
+        if len(res) == 0:
+            print('no results by products')
+
+    print(len(res))
+    for r in res:
+        print(str(r.name) + ' ' + str(r.price/100) + 'Р')
+
     # TODO сформировать резултат поиска в виде списка, с возможность посмотреть о продукте больше
     bot.send_message(message.chat.id, "Тут будет результат поиска")
 
 
 def show_categories(bot: telebot.TeleBot, message: telebot.types.Message):
+
+    for cat in gnrl_crud.get_all_categories():
+        bot.send_message(message.chat.id, cat.get_name())
+
     # TODO Сформировать список возможных продуктов: (хлебобулочные, молочные...), inline_buttons!!!
     bot.send_message(message.chat.id, "Тут будет список категорий")
 

@@ -24,10 +24,6 @@ def start_message(message: telebot.types.Message):
 
 # Categories
 @bot.message_handler(commands=['categories'])
-def categories_by_command(message: telebot.types.Message):
-    responders.show_categories(bot, message)
-
-
 @bot.message_handler(content_types=['text'], func=lambda message: message.text == "🍱 Категории")
 def categories_by_button(message: telebot.types.Message):
     responders.show_categories(bot, message)
@@ -35,10 +31,6 @@ def categories_by_button(message: telebot.types.Message):
 
 # Settings
 @bot.message_handler(commands=['settings'])
-def settings_by_command(message: telebot.types.Message):
-    responders.show_settings(bot, message)
-
-
 @bot.message_handler(content_types=['text'], func=lambda message: message.text == "🍥 Настройки")
 def settings_by_button(message: telebot.types.Message):
     responders.show_settings(bot, message)
@@ -46,10 +38,6 @@ def settings_by_button(message: telebot.types.Message):
 
 # Help
 @bot.message_handler(commands=['help'])
-def help_by_command(message: telebot.types.Message):
-    responders.show_help(bot, message)
-
-
 @bot.message_handler(content_types=['text'], func=lambda message: message.text == "🍻 Помощь")
 def help_by_button(message: telebot.types.Message):
     responders.show_help(bot, message)
@@ -57,10 +45,6 @@ def help_by_button(message: telebot.types.Message):
 
 # Share
 @bot.message_handler(commands=['share'])
-def share_by_command(message: telebot.types.Message):
-    responders.do_share(bot, message)
-
-
 @bot.message_handler(content_types=['text'], func=lambda message: message.text == "🥂 Поделиться")
 def share_by_button(message: telebot.types.Message):
     responders.do_share(bot, message)
