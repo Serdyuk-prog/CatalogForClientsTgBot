@@ -171,7 +171,7 @@ def find_like_products_by_name(like_name: str, order_by_field_name: str = 'name'
                     continue
 
                 if s_index >= 5:
-                    s_queries = s_queries[:s_index]
+                    s_queries = s_queries[:s_index + 1]
                     break
                 s_index += 1
 
