@@ -3,6 +3,8 @@ import confing
 from dbs.gcategory import GCategory
 from dbs.gproduct import GProduct
 import gnrl_crud
+from dbs.user import User
+
 
 bot = telebot.TeleBot(confing.TOKEN, parse_mode=None)
 
@@ -66,8 +68,29 @@ def categories_by_button_callback_handler(call: telebot.types.CallbackQuery):
 @bot.message_handler(commands=['settings'])
 @bot.message_handler(content_types=['text'], func=lambda message: message.text == "🍥 Настройки")
 def settings_by_button(message: telebot.types.Message):
-    # TODO Сформировать inline_buttons для настроек (количество записей на странице при поиске)
-    bot.send_message(message.chat.id, "Тут будут настройки")
+    user = User(message.from_user.id)
+    settings = user.get_settings()
+    on_page: int = settings['on_page']
+    settings_markup = telebot.types.InlineKeyboardMarkup()\
+        .row(telebot.types.InlineKeyboardButton(text='На странице записей: ' + str(on_page),
+                                                callback_data='set|' + str(on_page)))
+    bot.send_message(message.chat.id, '🍥 Настройки', reply_markup=settings_markup)
+    # bot.send_message(message.chat.id, "Тут будут настройки")
+
+
+@bot.callback_query_handler(func=lambda call: call.data[:3] == 'set')
+def settings_callback_handler(call: telebot.types.CallbackQuery):
+    c_id: int = call.message.json['chat']['id']
+    m_id: int = call.message.id
+    on_page: int = 5 if int(call.data[4:]) == 10 else 10
+
+    user = User(call.from_user.id)
+    user.set_settings(on_page)
+
+    new_settings_markup = telebot.types.InlineKeyboardMarkup()\
+        .row(telebot.types.InlineKeyboardButton(text='На странице записей: ' + str(on_page),
+                                                callback_data='set|' + str(on_page)))
+    bot.edit_message_reply_markup(c_id, m_id, call.inline_message_id, new_settings_markup)
 
 
 # Help
