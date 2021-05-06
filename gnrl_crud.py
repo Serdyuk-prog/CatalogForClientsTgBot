@@ -149,17 +149,31 @@ def find_like_products_by_name(like_name: str, order_by_field_name: str = 'name'
             prods = cur.execute(query, tuple(params)).fetchall()
             rated_prods = []
             s_queries = search_query.split(' ')
-            if len(s_queries) > 5:
-                s_queries = s_queries[:5]
-            for s_index in range(len(s_queries)):
+
+            s_index = 0
+            s_queries_len = len(s_queries)
+            while s_index < s_queries_len:
                 sq_len = len(s_queries[s_index])
                 s_query = s_queries[s_index]
                 if 3 < sq_len <= 5:
-                    s_queries[s_index] = s_query[:sq_len-1]
+                    s_queries[s_index] = s_query[:sq_len - 1]
                 elif 5 < sq_len <= 7:
-                    s_queries[s_index] = s_query[:sq_len-2]
+                    s_queries[s_index] = s_query[:sq_len - 2]
                 elif 7 < sq_len:
                     s_queries[s_index] = s_query[:round(sq_len * 6.5 / 10)]
+                elif sq_len != 3:
+                    s_queries_len -= 1
+                    del s_queries[s_index]
+                    continue
+
+                if s_query == 'без' and not (s_queries_len == s_index + 1 or s_queries[s_index + 1] == 'без'):
+                    s_index += 1
+                    continue
+
+                if s_index >= 5:
+                    s_queries = s_queries[:s_index]
+                    break
+                s_index += 1
 
             for prod in prods:
                 rating = 0
@@ -167,6 +181,9 @@ def find_like_products_by_name(like_name: str, order_by_field_name: str = 'name'
                 for s_query in s_queries:
                     if s_query in prod_name:
                         rating += 1
+                        if 'без' == s_query:
+                            rating += 2
+
                 if rating != 0:
                     rated_prods.append([rating, prod])
 
