@@ -1,6 +1,8 @@
 import telebot
 import confing
-import responders
+from dbs.gcategory import GCategory
+from dbs.gproduct import GProduct
+import gnrl_crud
 
 bot = telebot.TeleBot(confing.TOKEN, parse_mode=None)
 
@@ -26,28 +28,35 @@ def start_message(message: telebot.types.Message):
 @bot.message_handler(commands=['categories'])
 @bot.message_handler(content_types=['text'], func=lambda message: message.text == "🍱 Категории")
 def categories_by_button(message: telebot.types.Message):
-    responders.show_categories(bot, message)
+    for cat in gnrl_crud.get_all_categories():
+        bot.send_message(message.chat.id, cat.get_name())
+
+    # TODO Сформировать список возможных продуктов: (хлебобулочные, молочные...), inline_buttons!!!
+    bot.send_message(message.chat.id, "Тут будет список категорий")
 
 
 # Settings
 @bot.message_handler(commands=['settings'])
 @bot.message_handler(content_types=['text'], func=lambda message: message.text == "🍥 Настройки")
 def settings_by_button(message: telebot.types.Message):
-    responders.show_settings(bot, message)
+    # TODO Сформировать inline_buttons для настроек (количество записей на странице при поиске)
+    bot.send_message(message.chat.id, "Тут будут настройки")
 
 
 # Help
 @bot.message_handler(commands=['help'])
 @bot.message_handler(content_types=['text'], func=lambda message: message.text == "🍻 Помощь")
 def help_by_button(message: telebot.types.Message):
-    responders.show_help(bot, message)
+    # TODO загрузить help-file, помогающий пользователю соориентироваться по боту
+    bot.send_message(message.chat.id, "Тут людям помогают")
 
 
 # Share
 @bot.message_handler(commands=['share'])
 @bot.message_handler(content_types=['text'], func=lambda message: message.text == "🥂 Поделиться")
 def share_by_button(message: telebot.types.Message):
-    responders.do_share(bot, message)
+    # TODO Перенаправить пользователя в чат, что он смог поделиться ссылкой на бота
+    bot.send_message(message.chat.id, "Тут людям ботом хвастают")
 
 
 # Search
@@ -62,7 +71,19 @@ def search_by_markup(message: telebot.types.Message):
 
 @bot.message_handler(content_types=['text'])
 def search_by_text(message: telebot.types.Message):
-    responders.do_search(bot, message)
+    res = gnrl_crud.find_products_by_category(str(message.text))
+    if len(res) == 0:
+        print('no results by category')
+        res = gnrl_crud.find_like_products_by_name(str(message.text))
+        if len(res) == 0:
+            print('no results by products')
+
+    print(len(res))
+    for r in res:
+        print(str(r.name) + ' ' + str(r.price / 100) + 'Р')
+
+    # TODO сформировать резултат поиска в виде списка, с возможность посмотреть о продукте больше
+    bot.send_message(message.chat.id, "Тут будет результат поиска")
 
 
 if __name__ == '__main__':
