@@ -28,11 +28,38 @@ def start_message(message: telebot.types.Message):
 @bot.message_handler(commands=['categories'])
 @bot.message_handler(content_types=['text'], func=lambda message: message.text == "🍱 Категории")
 def categories_by_button(message: telebot.types.Message):
-    for cat in gnrl_crud.get_all_categories():
-        bot.send_message(message.chat.id, cat.get_name())
+    categories_keyboard = telebot.types.InlineKeyboardMarkup()
 
-    # TODO Сформировать список возможных продуктов: (хлебобулочные, молочные...), inline_buttons!!!
-    bot.send_message(message.chat.id, "Тут будет список категорий")
+    for cat in gnrl_crud.get_all_categories():
+        cat_full_name = str(cat.get_name())
+        categories_keyboard.row(
+            telebot.types.InlineKeyboardButton(
+                cat_full_name, callback_data='cat|' + cat_full_name))
+    bot.send_message(message.chat.id, text='🍱 Категории', reply_markup=categories_keyboard)
+
+
+@bot.callback_query_handler(func=lambda call: call.data[:3] == 'cat')
+def categories_by_button_callback_handler(call: telebot.types.CallbackQuery):
+    c_id: int = call.message.json['chat']['id']
+    m_id: int = call.message.id
+    text: str = call.data[4:]
+    bot.delete_message(c_id, m_id)
+    bot.send_message(c_id, 'Поиск по категории ' + text + ':')
+
+    res = gnrl_crud.find_products_by_category(str(text))
+    if len(res) == 0:
+        print('no results by category')
+        res = gnrl_crud.find_like_products_by_name(str(text))
+        if len(res) == 0:
+            print('no results by products')
+            # TODO Исправить эту надпись
+            bot.send_message(c_id, 'К сожалению, мы ничего не нашли, кажется остался только кофе')
+
+    print(len(res))
+    for r in res:
+        msg_txt = str(r.name) + ' ' + str(r.price / 100) + 'Р'
+        print(msg_txt)
+        bot.send_message(c_id, msg_txt)
 
 
 # Settings
