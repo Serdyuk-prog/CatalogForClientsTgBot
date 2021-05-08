@@ -1,12 +1,16 @@
 import telebot
-import confing
+import gnrl_crud
+import jcrud
+
 from dbs.gcategory import GCategory
 from dbs.gproduct import GProduct
-import gnrl_crud
 from dbs.user import User
 
 
-bot = telebot.TeleBot(confing.TOKEN, parse_mode=None)
+token = jcrud.read_token()
+bot = bot = telebot.TeleBot(token, parse_mode=None)
+
+
 
 
 MAIN_PAGE_MARKUP = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=False) \
@@ -87,8 +91,8 @@ def settings_callback_handler(call: telebot.types.CallbackQuery):
 @bot.message_handler(commands=['help'])
 @bot.message_handler(content_types=['text'], func=lambda message: message.text == "🍻 Помощь")
 def help_by_button(message: telebot.types.Message):
-    # TODO загрузить help-file, помогающий пользователю соориентироваться по боту
-    bot.send_message(message.chat.id, "Тут людям помогают")
+    desc = jcrud.read_description()
+    bot.send_message(message.chat.id, desc)
 
 
 # Share
@@ -96,8 +100,7 @@ def help_by_button(message: telebot.types.Message):
 @bot.message_handler(content_types=['text'], func=lambda message: message.text == "🥂 Поделиться")
 def share_by_button(message: telebot.types.Message):
     # TODO Перенаправить пользователя в чат, что он смог поделиться ссылкой на бота
-    share_text = 'Привет, я бот для компании Чайкофъ, я умею искать товары и многое другое, не хочу навязваться,' \
-                 'но у меня правда полезный функционал, так что заходите, еслив что...'
+    share_text = jcrud.read_about()
     share_markup = telebot.types.InlineKeyboardMarkup()\
         .row(telebot.types.InlineKeyboardButton('Перешли меня', switch_inline_query=share_text))
 
@@ -147,6 +150,9 @@ def show_results(u_id: int, chat_id: int, res: list[GProduct]):
 
 
 if __name__ == '__main__':
-    print('bot is started')
-    bot.polling()
-
+    if token is None:
+        print('config file is not found')
+    else:
+        token = None
+        print('bot is started')
+        bot.polling()

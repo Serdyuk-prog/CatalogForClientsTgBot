@@ -15,8 +15,6 @@ class User:
             self.dumped = GUser([self.id, 5, None, None, None, None])
 
     def get_settings(self) -> dict:
-        print(self.dumped)
-        print(self.dumped.on_page)
         return {'on_page': self.dumped.on_page}
 
     def set_settings(self, on_page: int) -> dict:
@@ -89,7 +87,7 @@ class User:
                 }
 
             except Exception as e:
-                print(e)
+                print('set_search: ' + str(e))
                 return {}
 
     def __try_get_user(self) -> Optional[GUser]:
@@ -107,5 +105,5 @@ class User:
                 return GUser(user_data)
 
             except Exception as e:
-                print('try get user:' + str(e))
+                print('__try_get_user: ' + str(e))
                 return None
