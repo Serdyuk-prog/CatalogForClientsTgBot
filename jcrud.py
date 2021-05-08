@@ -2,7 +2,7 @@ import json
 import os.path
 from typing import Optional
 
-file_name = 'config.json'
+file_name = 'dbs/config.json'
 
 
 def read_token() -> Optional[str]:

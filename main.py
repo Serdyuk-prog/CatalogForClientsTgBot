@@ -8,9 +8,7 @@ from dbs.user import User
 
 
 token = jcrud.read_token()
-bot = bot = telebot.TeleBot(token, parse_mode=None)
-
-
+bot = telebot.TeleBot(token, parse_mode=None)
 
 
 MAIN_PAGE_MARKUP = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=False) \
