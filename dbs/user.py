@@ -12,14 +12,14 @@ class User:
         self.id = user_id
         self.dumped = self.__try_get_user()
         if self.dumped is None:
-            self.dumped = GUser([self.id, 5, None, None, None, None])
+            self.dumped = GUser([self.id, 2, None, None, None, None])
 
     def get_settings(self) -> dict:
         return {'on_page': self.dumped.on_page}
 
     def set_settings(self, on_page: int) -> dict:
-        if on_page not in (5, 10):
-            on_page = 5
+        if on_page not in (1, 2):
+            on_page = 2
         with sqlite3.connect(self.db_name) as con:
             cur = con.cursor()
 
@@ -90,6 +90,9 @@ class User:
                 print('set_search: ' + str(e))
                 return {}
 
+    def reset_search(self):
+        self.set_search({'query': '', 'way': '', 'row': 0})
+
     def __try_get_user(self) -> Optional[GUser]:
         with sqlite3.connect(self.db_name) as con:
             cur = con.cursor()
@@ -101,7 +104,7 @@ class User:
                     # User is not created, create it!
                     con.execute('''INSERT INTO user (id) VALUES (?)''', (self.id,))
                     con.commit()
-                    user_data = [self.id, 5, None, None, None, None]
+                    user_data = [self.id, 2, None, None, None, None]
                 return GUser(user_data)
 
             except Exception as e:

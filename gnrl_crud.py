@@ -77,7 +77,7 @@ def get_product_by_id(product_id: int) -> Optional[GProduct]:
             return None
 
 
-def find_products_by_category(name_with_symbol: str, order_by_field_name: str = 'name',
+def find_products_by_category(name_with_symbol: str, order_by_field_name: str = 'name', is_desk: bool = False,
                               row_count: int = -1, offset: int = -1) -> list[GProduct]:
     with sqlite3.connect(db_name) as con:
         cur = con.cursor()
@@ -87,7 +87,6 @@ def find_products_by_category(name_with_symbol: str, order_by_field_name: str = 
 
         symbol = name_with_symbol[0] + name_with_symbol[1]
         name = re.sub(r"[^а-яА-Я]+", '', name_with_symbol)
-        print("|" + name + "|" + symbol + "|")
 
         try:
             cat = cur.execute('''SELECT * FROM category 
@@ -96,19 +95,23 @@ def find_products_by_category(name_with_symbol: str, order_by_field_name: str = 
                 print("no cats")
                 return []
             else:
-                query = "SELECT * FROM product WHERE category_id = ? ORDER BY ?"
-                params = [int(cat[0]), order_by_field_name]
-
+                query = "SELECT * FROM product WHERE category_id = ? ORDER BY "
                 if order_by_field_name == '':
                     order_by_field_name = 'id'
+                query += order_by_field_name + ' '
+                if is_desk:
+                    query += "DESC "
+                params = [int(cat[0])]
+
                 if row_count != -1:
                     query += "LIMIT ? "
                     params.append(row_count)
                     if offset != -1:
                         query += "OFFSET ? "
                         params.append(offset)
-
+                print(query + str(params))
                 prods = cur.execute(query, tuple(params)).fetchall()
+                print('>> ' + str(prods))
                 frmtd_prods = []
                 for prod in prods:
                     frmtd_prods.append(GProduct(prod))
@@ -116,11 +119,11 @@ def find_products_by_category(name_with_symbol: str, order_by_field_name: str = 
                 return frmtd_prods
 
         except Exception as e:
-            print(e)
+            print('find_products_by_category: ' + str(e))
             return []
 
 
-def find_like_products_by_name(like_name: str, order_by_field_name: str = 'name',
+def find_like_products_by_name(like_name: str, order_by_field_name: str = 'name', is_desk: bool = False,
                                row_count: int = -1, offset: int = -1) -> list[GProduct]:
     with sqlite3.connect(db_name) as con:
         cur = con.cursor()
@@ -134,11 +137,14 @@ def find_like_products_by_name(like_name: str, order_by_field_name: str = 'name'
             return []
 
         try:
-            query = "SELECT * FROM product ORDER BY ?"
-            params = [order_by_field_name]
-
+            query = "SELECT * FROM product ORDER BY "
             if order_by_field_name == '':
                 order_by_field_name = 'id'
+            query += order_by_field_name + ' '
+            if is_desk:
+                query += 'DESC '
+            params = []
+
             if row_count != -1:
                 query += "LIMIT ? "
                 params.append(row_count)
@@ -146,7 +152,9 @@ def find_like_products_by_name(like_name: str, order_by_field_name: str = 'name'
                     query += "OFFSET ? "
                     params.append(offset)
 
+            print(query + ' - ' + str(params))
             prods = cur.execute(query, tuple(params)).fetchall()
+            print(str(prods))
             rated_prods = []
             s_queries = search_query.split(' ')
 
@@ -196,5 +204,5 @@ def find_like_products_by_name(like_name: str, order_by_field_name: str = 'name'
             return formatted_products
 
         except Exception as e:
-            print(e)
+            print('find_like_products_by_name: ' + str(e))
             return []
