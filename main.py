@@ -20,9 +20,8 @@ MAIN_PAGE_MARKUP = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True, one_t
 # Start
 @bot.message_handler(commands=['start'])
 def start_message(message: telebot.types.Message):
-    # Here the bot describes about itself, what it can do and so on...
-    # TODO Описать основные возможности бота
-    bot.send_message(message.chat.id, "Тут то, что я могу, умею, практикую",
+    User(message.from_user.id)
+    bot.send_message(message.chat.id, "Привет, приятно познакомиться",
                      reply_markup=MAIN_PAGE_MARKUP)
 
 
@@ -50,18 +49,9 @@ def categories_by_button_callback_handler(call: telebot.types.CallbackQuery):
 
     res = gnrl_crud.find_products_by_category(str(text))
     if len(res) == 0:
-        print('no results by category')
         res = gnrl_crud.find_like_products_by_name(str(text))
-        if len(res) == 0:
-            print('no results by products')
-            # TODO Исправить эту надпись
-            bot.send_message(c_id, 'К сожалению, мы ничего не нашли, кажется остался только кофе')
 
-    print(len(res))
-    for r in res:
-        msg_txt = str(r.name) + ' ' + str(r.price / 100) + 'Р'
-        print(msg_txt)
-        bot.send_message(c_id, msg_txt)
+    show_results(call.from_user.id, c_id, res)
 
 
 # Settings
@@ -106,34 +96,54 @@ def help_by_button(message: telebot.types.Message):
 @bot.message_handler(content_types=['text'], func=lambda message: message.text == "🥂 Поделиться")
 def share_by_button(message: telebot.types.Message):
     # TODO Перенаправить пользователя в чат, что он смог поделиться ссылкой на бота
-    bot.send_message(message.chat.id, "Тут людям ботом хвастают")
+    share_text = 'Привет, я бот для компании Чайкофъ, я умею искать товары и многое другое, не хочу навязваться,' \
+                 'но у меня правда полезный функционал, так что заходите, еслив что...'
+    share_markup = telebot.types.InlineKeyboardMarkup()\
+        .row(telebot.types.InlineKeyboardButton('Перешли меня', switch_inline_query=share_text))
+
+    bot.send_message(message.chat.id, "🥂 Поделиться", reply_markup=share_markup)
 
 
 # Search
 @bot.message_handler(content_types=['text'], func=lambda message: message.text == "🍭 Поиск")
 def search_by_markup(message: telebot.types.Message):
-    # Here is a search responder...
-    # TODO Изменить текст сообщения ниже
-    bot.send_message(message.chat.id, "Ну ты это... и так в поиске, просто напиши мне что-нибудь и я объязательно "
-                                      "найду. \r\n"
-                                      "PS: Или не найду, тут как повезет")
+    bot.send_message(message.chat.id, "Ты уже в режиме поиска, просто напиши мне что-нибудь и я попробую найти")
 
 
 @bot.message_handler(content_types=['text'])
 def search_by_text(message: telebot.types.Message):
     res = gnrl_crud.find_products_by_category(str(message.text))
     if len(res) == 0:
-        print('no results by category')
         res = gnrl_crud.find_like_products_by_name(str(message.text))
-        if len(res) == 0:
-            print('no results by products')
+    show_results(message.from_user.id, message.chat.id, res)
 
-    print(len(res))
-    for r in res:
-        print(str(r.name) + ' ' + str(r.price / 100) + 'Р')
+
+def show_results(u_id: int, chat_id: int, res: list[GProduct]):
+    if len(res) == 0:
+        # TODO Исправить эти надписи
+        print('no results found')
+        bot.send_message(chat_id, 'К сожалению, мы ничего не нашли, кажется остался только кофе')
 
     # TODO сформировать резултат поиска в виде списка, с возможность посмотреть о продукте больше
-    bot.send_message(message.chat.id, "Тут будет результат поиска")
+    for r in res:
+        text_amount = ''
+        amount_div = r.amount / r.uly_bring
+        if r.amount == 0:
+            text_amount = 'Нет в наличии'
+        elif amount_div < 0.3:
+            text_amount = 'Мало'
+        elif amount_div < 0.7:
+            text_amount = 'Достаточно'
+        else:
+            text_amount = 'Много'
+
+        msg_txt = 'Название:' + str(r.name) + '\r\n' + \
+                  'Описание:' + str('Не указано' if r.desc is None else r.desc) + '\r\n' + \
+                  str('' if r.quantity is None else r.quantity + '\r\n') + \
+                  'Наличие: ' + text_amount + '\r\n' + \
+                  'Цена: ' + str(r.price / 100) + 'Р'
+
+        bot.send_message(chat_id, msg_txt)
 
 
 if __name__ == '__main__':

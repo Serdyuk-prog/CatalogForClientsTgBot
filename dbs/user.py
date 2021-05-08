@@ -12,10 +12,7 @@ class User:
         self.id = user_id
         self.dumped = self.__try_get_user()
         if self.dumped is None:
-            print("error?!?! aaaaaaaaaaaa")
             self.dumped = GUser([self.id, 5, None, None, None, None])
-        else:
-            print("its ok")
 
     def get_settings(self) -> dict:
         print(self.dumped)
