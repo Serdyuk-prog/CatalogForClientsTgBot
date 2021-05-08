@@ -99,7 +99,6 @@ def help_by_button(message: telebot.types.Message):
 @bot.message_handler(commands=['share'])
 @bot.message_handler(content_types=['text'], func=lambda message: message.text == "🥂 Поделиться")
 def share_by_button(message: telebot.types.Message):
-    # TODO Перенаправить пользователя в чат, что он смог поделиться ссылкой на бота
     share_text = jcrud.read_about()
     share_markup = telebot.types.InlineKeyboardMarkup()\
         .row(telebot.types.InlineKeyboardButton('Перешли меня', switch_inline_query=share_text))
